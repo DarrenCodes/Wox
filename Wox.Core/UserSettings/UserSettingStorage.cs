@@ -56,10 +56,13 @@ namespace Wox.Core.UserSettings
         public string ResultItemFontStretch { get; set; }
 
         [JsonProperty]
-        public double WindowLeft { get; set; }
+        public List<double> WindowLeft { get; set; }
 
         [JsonProperty]
-        public double WindowTop { get; set; }
+        public List<double> WindowTop { get; set; }
+
+        [JsonProperty]
+        public List<Rectangle> Screens { get; set; }
 
         public List<CustomizedPluginConfig> CustomizedPluginConfigs { get; set; }
 
