@@ -47,6 +47,8 @@ namespace Wox
         private List<Result> CurrentContextMenus = new List<Result>();
         private string textBeforeEnterContextMenuMode;
 
+        private int ActiveScreenIndex { get; set; }
+
         #endregion
 
         #region Public API
@@ -199,11 +201,42 @@ namespace Wox
             pnlContextMenu.LeftMouseClickEvent += SelectResult;
             pnlResult.RightMouseClickEvent += pnlResult_RightMouseClickEvent;
             Closing += MainWindow_Closing;
-
-
+            
             SetHotkey(UserSettingStorage.Instance.Hotkey, OnHotkey);
             SetCustomPluginHotkey();
             InitialTray();
+            
+            CheckScreens();
+        }
+
+        private void CheckScreens()
+        {
+            if (UserSettingStorage.Instance.Screens == null)
+                UserSettingStorage.Instance.Screens = new List<Rectangle>();
+            if (UserSettingStorage.Instance.WindowLeft == null)
+                UserSettingStorage.Instance.WindowLeft = new List<double>();
+            if (UserSettingStorage.Instance.WindowTop == null)
+                UserSettingStorage.Instance.WindowTop = new List<double>();
+
+            int i = 0;
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                if (i >= UserSettingStorage.Instance.Screens.Count)
+                {
+                    UserSettingStorage.Instance.Screens.Add(screen.Bounds);
+                    UserSettingStorage.Instance.WindowLeft.Add(screen.Bounds.Width / 2 - (Width / 2) + screen.WorkingArea.Left);
+                    UserSettingStorage.Instance.WindowTop.Add(screen.Bounds.Height / 4 + screen.WorkingArea.Top);
+                }
+                else if (UserSettingStorage.Instance.Screens[i] != screen.Bounds)
+                {
+                    UserSettingStorage.Instance.Screens[i] = screen.Bounds;
+                    UserSettingStorage.Instance.WindowLeft[i] = (screen.Bounds.Width / 2 - (Width / 2) + screen.WorkingArea.Left);
+                    UserSettingStorage.Instance.WindowTop[i] = (screen.Bounds.Height / 4 + screen.WorkingArea.Top);
+                }
+
+                i++;
+            }
+            UserSettingStorage.Instance.Save();
         }
 
         void pnlResult_ItemDropEvent(Result result, IDataObject dropDataObject, DragEventArgs args)
@@ -237,14 +270,12 @@ namespace Wox
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            UserSettingStorage.Instance.WindowLeft = Left;
-            UserSettingStorage.Instance.WindowTop = Top;
-            UserSettingStorage.Instance.Save();
+            SaveCurrentPosition();
             this.HideWox();
             e.Cancel = true;
         }
 
-        private void StartupScreenLocation()
+        private void LoadScreenLocation()
         {
             int max_width = 0;
             int max_height = 0;
@@ -260,14 +291,15 @@ namespace Wox
 
             var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
 
-            if (UserSettingStorage.Instance.WindowLeft < max_width && UserSettingStorage.Instance.WindowTop < max_height)
+            if (UserSettingStorage.Instance.WindowLeft[ActiveScreenIndex] < max_width && UserSettingStorage.Instance.WindowTop[ActiveScreenIndex] < max_height)
             {
-                Left = UserSettingStorage.Instance.WindowLeft;
-                Top = UserSettingStorage.Instance.WindowTop;
+                Left = UserSettingStorage.Instance.WindowLeft[ActiveScreenIndex];
+                Top = UserSettingStorage.Instance.WindowTop[ActiveScreenIndex];
             }
             else
             {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                Left = screen.Bounds.Width / 2 - (Width / 2) + screen.WorkingArea.Left;
+                Top = screen.Bounds.Height / 4 + screen.WorkingArea.Top;
             }
         }
 
@@ -276,46 +308,11 @@ namespace Wox
             ThemeManager.Theme.ChangeTheme(UserSettingStorage.Instance.Theme);
             InternationalizationManager.Instance.ChangeLanguage(UserSettingStorage.Instance.Language);
             
-            StartupScreenLocation();
-            
             InitProgressbarAnimation();
             WindowIntelopHelper.DisableControlBox(this);
             CheckUpdate();
         }
-
-        private double GetWindowsLeft()
-        {
-            var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
-            if (UserSettingStorage.Instance.RememberLastLaunchLocation)
-            {
-                var origScreen = Screen.FromRectangle(new Rectangle((int)Left, (int)Top, (int)ActualWidth, (int)ActualHeight));
-                var coordX = (Left - origScreen.WorkingArea.Left) / (origScreen.WorkingArea.Width - ActualWidth);
-                UserSettingStorage.Instance.WindowLeft = (screen.WorkingArea.Width - ActualWidth) * coordX + screen.WorkingArea.Left;
-            }
-            else
-            {
-                UserSettingStorage.Instance.WindowLeft = (screen.WorkingArea.Width - ActualWidth) / 2 + screen.WorkingArea.Left;
-            }
-
-            return UserSettingStorage.Instance.WindowLeft;
-        }
-
-        private double GetWindowsTop()
-        {
-            var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
-            if (UserSettingStorage.Instance.RememberLastLaunchLocation)
-            {
-                var origScreen = Screen.FromRectangle(new Rectangle((int)Left, (int)Top, (int)ActualWidth, (int)ActualHeight));
-                var coordY = (Top - origScreen.WorkingArea.Top) / (origScreen.WorkingArea.Height - ActualHeight);
-                UserSettingStorage.Instance.WindowTop = (screen.WorkingArea.Height - ActualHeight) * coordY + screen.WorkingArea.Top;
-            }
-            else
-            {
-                UserSettingStorage.Instance.WindowTop = (screen.WorkingArea.Height - tbQuery.ActualHeight) / 4 + screen.WorkingArea.Top;
-            }
-            return UserSettingStorage.Instance.WindowTop;
-        }
-
+        
         private void CheckUpdate()
         {
             UpdaterManager.Instance.PrepareUpdateReady += OnPrepareUpdateReady;
@@ -557,8 +554,18 @@ namespace Wox
             progressBar.Visibility = Visibility.Hidden;
         }
 
+        private void SaveCurrentPosition()
+        {
+            UserSettingStorage.Instance.WindowLeft[ActiveScreenIndex] = Left;
+            UserSettingStorage.Instance.WindowTop[ActiveScreenIndex] = Top;
+
+            UserSettingStorage.Instance.Save();
+        }
+
         private void HideWox()
         {
+            SaveCurrentPosition();
+
             if (IsInContextMenuMode)
             {
                 BackToResultMode();
@@ -568,14 +575,24 @@ namespace Wox
 
         private void ShowWox(bool selectAll = true)
         {
+            var currentScreen = Screen.FromPoint(System.Windows.Forms.Cursor.Position).Bounds;
+
+            int i = 0;
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                if (screen.Bounds == currentScreen)
+                {
+                    ActiveScreenIndex = i;
+                    break;
+                }
+                i++;
+            }
+
             UserSettingStorage.Instance.IncreaseActivateTimes();
+            LoadScreenLocation();
 
             Show();
             Activate();
-
-            Left = GetWindowsLeft();
-            Top = GetWindowsTop();
-
             Focus();
             tbQuery.Focus();
             ResetQueryHistoryIndex();
