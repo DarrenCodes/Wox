@@ -244,14 +244,40 @@ namespace Wox
             e.Cancel = true;
         }
 
+        private void StartupScreenLocation()
+        {
+            int max_width = 0;
+            int max_height = 0;
+            foreach (Screen screen_device in Screen.AllScreens)
+            {
+                max_width += screen_device.Bounds.Width;
+
+                if (screen_device.Bounds.Height > max_height)
+                {
+                    max_height = screen_device.Bounds.Height;
+                }
+            }
+
+            var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
+
+            if (UserSettingStorage.Instance.WindowLeft < max_width && UserSettingStorage.Instance.WindowTop < max_height)
+            {
+                Left = UserSettingStorage.Instance.WindowLeft;
+                Top = UserSettingStorage.Instance.WindowTop;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+        }
+
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             ThemeManager.Theme.ChangeTheme(UserSettingStorage.Instance.Theme);
             InternationalizationManager.Instance.ChangeLanguage(UserSettingStorage.Instance.Language);
-
-            Left = GetWindowsLeft();
-            Top = GetWindowsTop();
-
+            
+            StartupScreenLocation();
+            
             InitProgressbarAnimation();
             WindowIntelopHelper.DisableControlBox(this);
             CheckUpdate();
@@ -543,11 +569,13 @@ namespace Wox
         private void ShowWox(bool selectAll = true)
         {
             UserSettingStorage.Instance.IncreaseActivateTimes();
-            Left = GetWindowsLeft();
-            Top = GetWindowsTop();
 
             Show();
             Activate();
+
+            Left = GetWindowsLeft();
+            Top = GetWindowsTop();
+
             Focus();
             tbQuery.Focus();
             ResetQueryHistoryIndex();
