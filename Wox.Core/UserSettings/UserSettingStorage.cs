@@ -61,6 +61,9 @@ namespace Wox.Core.UserSettings
         [JsonProperty]
         public double WindowTop { get; set; }
 
+        [JsonProperty]
+        public double DisplayScale { get; set; }
+
         public List<CustomizedPluginConfig> CustomizedPluginConfigs { get; set; }
 
         [JsonProperty]

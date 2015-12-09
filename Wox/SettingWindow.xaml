@@ -46,6 +46,10 @@
                     <TextBlock  Text="{DynamicResource maxShowResults}"></TextBlock>
                     <ComboBox Margin="10 0 0 0" Width="45" Name="comboMaxResultsToShow"/>
                 </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="10">
+                    <TextBlock  Text="{DynamicResource displayScale}"/>
+                    <TextBox Name="textBoxDisplayScale" Height="23" TextWrapping="Wrap" Width="92.8" Margin="10,0,0,0" LostFocus="textBoxDisplayScale_LostFocus"/>
+                </StackPanel>
             </StackPanel>
         </TabItem>
         <TabItem Header="{DynamicResource plugin}" x:Name="tabPlugin">

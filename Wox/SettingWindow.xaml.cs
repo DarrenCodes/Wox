@@ -109,6 +109,8 @@ namespace Wox
             var maxResults = UserSettingStorage.Instance.MaxResultsToShow;
             comboMaxResultsToShow.SelectedItem = maxResults == 0 ? 6 : maxResults;
 
+            textBoxDisplayScale.Text = UserSettingStorage.Instance.DisplayScale.ToString();
+
             #endregion
 
             #region Proxy
@@ -802,6 +804,16 @@ namespace Wox
             {
                 Close();
             }
+        }
+
+        private void textBoxDisplayScale_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (Convert.ToDouble(textBoxDisplayScale.Text) > 10)
+                UserSettingStorage.Instance.DisplayScale = Convert.ToDouble(textBoxDisplayScale.Text) / 100;
+            else
+                UserSettingStorage.Instance.DisplayScale = Convert.ToDouble(textBoxDisplayScale.Text);
+
+            UserSettingStorage.Instance.Save();
         }
     }
 }
