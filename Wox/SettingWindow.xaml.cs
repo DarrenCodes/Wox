@@ -808,12 +808,14 @@ namespace Wox
 
         private void textBoxDisplayScale_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (Convert.ToDouble(textBoxDisplayScale.Text) > 10)
-                UserSettingStorage.Instance.DisplayScale = Convert.ToDouble(textBoxDisplayScale.Text) / 100;
-            else
-                UserSettingStorage.Instance.DisplayScale = Convert.ToDouble(textBoxDisplayScale.Text);
+            double scale = 0;
 
-            UserSettingStorage.Instance.Save();
+            if (double.TryParse(textBoxDisplayScale.Text, out scale))
+            {
+                UserSettingStorage.Instance.DisplayScale = scale;
+
+                UserSettingStorage.Instance.Save();
+            }
         }
     }
 }

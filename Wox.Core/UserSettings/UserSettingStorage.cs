@@ -17,8 +17,7 @@ namespace Wox.Core.UserSettings
 
         [JsonProperty]
         public int ActivateTimes { get; set; }
-
-
+        
         [JsonProperty]
         public bool EnableUpdateLog { get; set; }
 
@@ -119,9 +118,7 @@ namespace Wox.Core.UserSettings
         {
             get { return "config"; }
         }
-
         
-
         public void IncreaseActivateTimes()
         {
             ActivateTimes++;

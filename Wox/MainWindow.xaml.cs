@@ -289,11 +289,12 @@ namespace Wox
             if (UserSettingStorage.Instance.RememberLastLaunchLocation)
             {
                 var val = screen.Bounds.Left;
-                var origScreen = Screen.FromRectangle(new Rectangle((int)(Left * UserSettingStorage.Instance.DisplayScale), (int)Top, (int)ActualWidth, (int)ActualHeight));
+                double display_scale = UserSettingStorage.Instance.DisplayScale / 100;
+                var origScreen = Screen.FromRectangle(new Rectangle((int)(Left * display_scale), (int)Top, (int)ActualWidth, (int)ActualHeight));
 
-                double independentValueX = (origScreen.WorkingArea.Width / UserSettingStorage.Instance.DisplayScale) / (Left - (origScreen.WorkingArea.Left / UserSettingStorage.Instance.DisplayScale));
+                double independentValueX = (origScreen.WorkingArea.Width / display_scale) / (Left - (origScreen.WorkingArea.Left / display_scale));
 
-                UserSettingStorage.Instance.WindowLeft = ((screen.WorkingArea.Width / UserSettingStorage.Instance.DisplayScale) / independentValueX) + (screen.WorkingArea.Left / UserSettingStorage.Instance.DisplayScale);
+                UserSettingStorage.Instance.WindowLeft = ((screen.WorkingArea.Width / display_scale) / independentValueX) + (screen.WorkingArea.Left / display_scale);
             }
             else
             {
@@ -309,11 +310,12 @@ namespace Wox
             if (UserSettingStorage.Instance.RememberLastLaunchLocation)
             {
                 var val = screen.Bounds.Left;
-                var origScreen = Screen.FromRectangle(new Rectangle((int)(Left * UserSettingStorage.Instance.DisplayScale), (int)Top, (int)ActualWidth, (int)ActualHeight));
+                double display_scale = UserSettingStorage.Instance.DisplayScale / 100;
+                var origScreen = Screen.FromRectangle(new Rectangle((int)(Left * display_scale), (int)Top, (int)ActualWidth, (int)ActualHeight));
                 
-                double independentValueY = (origScreen.WorkingArea.Height / UserSettingStorage.Instance.DisplayScale) / (Top - (origScreen.WorkingArea.Top / UserSettingStorage.Instance.DisplayScale));
+                double independentValueY = (origScreen.WorkingArea.Height / display_scale) / (Top - (origScreen.WorkingArea.Top / display_scale));
 
-                UserSettingStorage.Instance.WindowTop = (screen.WorkingArea.Height / UserSettingStorage.Instance.DisplayScale) / independentValueY;
+                UserSettingStorage.Instance.WindowTop = (screen.WorkingArea.Height / display_scale) / independentValueY;
             }
             else
             {
